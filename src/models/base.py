@@ -15,6 +15,7 @@ class Base(ABC):
     created_at: datetime
     updated_at: datetime
 
+
     def __init__(
         self,
         id: Optional[str] = None,

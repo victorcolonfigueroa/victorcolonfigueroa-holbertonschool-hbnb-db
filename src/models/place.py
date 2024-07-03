@@ -1,7 +1,7 @@
 """
 Place related functionality
 """
-
+from src import db
 from src.models.base import Base
 from src.models.city import City
 from src.models.user import User
@@ -26,42 +26,32 @@ host = relationship("User", back_populates="places")
 city = relationship("City", back_pipulates="places")
 
 class Place(Base):
-    """Place representation"""
+    name = db.Column(db.String(120), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    address = db.Column(db.String(120), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    host_id = db.Column(db.String(36), db.ForeignKey('user.id'), nullable=False)
+    city_id = db.Column(db.String(36), db.ForeignKey('city.id'), nullable=False)
+    price_per_night = db.Column(db.Integer, nullable=False)
+    number_of_bedrooms = db.Column(db.Integer, nullable=False)
+    max_guests = db.Column(db.Integer, nullable=False)
 
-    name: str
-    description: str
-    address: str
-    latitude: float
-    longitude: float
-    host_id: str
-    city_id: str
-    price_per_night: int
-    number_of_rooms: int
-    number_of_bathrooms: int
-    max_guests: int
-
-    def __init__(self, data: dict | None = None, **kw) -> None:
-        """Dummy init"""
+    def __init__(self, name: str, description: str, address: str, latitude: float, longitude: float, host_id: str, city_id: str, price_per_night: int, number_of_bedrooms: int, max_guests: int, **kw) -> None:
         super().__init__(**kw)
-
-        if not data:
-            return
-
-        self.name = data.get("name", "")
-        self.description = data.get("description", "")
-        self.address = data.get("address", "")
-        self.city_id = data["city_id"]
-        self.latitude = float(data.get("latitude", 0.0))
-        self.longitude = float(data.get("longitude", 0.0))
-        self.host_id = data["host_id"]
-        self.price_per_night = int(data.get("price_per_night", 0))
-        self.number_of_rooms = int(data.get("number_of_rooms", 0))
-        self.number_of_bathrooms = int(data.get("number_of_bathrooms", 0))
-        self.max_guests = int(data.get("max_guests", 0))
+        self.name = name
+        self.description = description
+        self.address = address
+        self.latitude = latitude
+        self.longitude = longitude
+        self.host_id = host_id
+        self.city_id = city_id
+        self.price_per_night = price_per_night
+        self.number_of_bedrooms = number_of_bedrooms
+        self.max_guests = max_guests
 
     def __repr__(self) -> str:
-        """Dummy repr"""
-        return f"<Place {self.id} ({self.name})>"
+        return f"<Place {self.name} {self.city_id} {self.host_id}>"
 
     def to_dict(self) -> dict:
         """Dictionary representation of the object"""
@@ -72,50 +62,21 @@ class Place(Base):
             "address": self.address,
             "latitude": self.latitude,
             "longitude": self.longitude,
-            "city_id": self.city_id,
             "host_id": self.host_id,
+            "city_id": self.city_id,
             "price_per_night": self.price_per_night,
-            "number_of_rooms": self.number_of_rooms,
-            "number_of_bathrooms": self.number_of_bathrooms,
-            "max_guests": self.max_guests,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "number_of_bedrooms": self.number_of_bedrooms,
+            "max_guests": self.max_guests
         }
 
-    @staticmethod
-    def create(data: dict) -> "Place":
+    def create(self):
         """Create a new place"""
-        from src.persistence import repo
+        db.session.add(self)
+        db.session.commit()
+        return self
 
-        user: User | None = User.get(data["host_id"])
-
-        if not user:
-            raise ValueError(f"User with ID {data['host_id']} not found")
-
-        city: City | None = City.get(data["city_id"])
-
-        if not city:
-            raise ValueError(f"City with ID {data['city_id']} not found")
-
-        new_place = Place(data=data)
-
-        repo.save(new_place)
-
-        return new_place
-
-    @staticmethod
-    def update(place_id: str, data: dict) -> "Place | None":
+    def update(self):
         """Update an existing place"""
-        from src.persistence import repo
+        db.session.commit()
+        return
 
-        place: Place | None = Place.get(place_id)
-
-        if not place:
-            return None
-
-        for key, value in data.items():
-            setattr(place, key, value)
-
-        repo.update(place)
-
-        return place

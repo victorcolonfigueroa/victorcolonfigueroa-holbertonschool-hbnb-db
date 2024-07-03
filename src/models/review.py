@@ -1,7 +1,7 @@
 """
 Review related functionality
 """
-
+from src import db
 from src.models.base import Base
 from src.models.place import Place
 from src.models.user import User
@@ -18,25 +18,20 @@ rating = Column(Float, nullable=False)
 class Review(Base):
     """Review representation"""
 
-    place_id: str
-    user_id: str
-    comment: str
-    rating: float
+    place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    rating = db.Column(db.Integer, nullable=False)
+    comment = db.Column(db.Text, nullable=True)
 
-    def __init__(
-        self, place_id: str, user_id: str, comment: str, rating: float, **kw
-    ) -> None:
-        """Dummy init"""
+    def __init__(self, place_id: str, user_id: str, rating: int, comment: str = None, **kw) -> None:
         super().__init__(**kw)
-
         self.place_id = place_id
         self.user_id = user_id
-        self.comment = comment
         self.rating = rating
+        self.comment = comment
 
     def __repr__(self) -> str:
-        """Dummy repr"""
-        return f"<Review {self.id} - '{self.comment[:25]}...'>"
+        return f"<Review {self.place_id} {self.user_id} {self.rating}>"
 
     def to_dict(self) -> dict:
         """Dictionary representation of the object"""
@@ -44,46 +39,17 @@ class Review(Base):
             "id": self.id,
             "place_id": self.place_id,
             "user_id": self.user_id,
-            "comment": self.comment,
             "rating": self.rating,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "comment": self.comment
         }
 
-    @staticmethod
-    def create(data: dict) -> "Review":
+    def create(self):
         """Create a new review"""
-        from src.persistence import repo
+        db.session.add(self)
+        db.session.commit()
+        return self
 
-        user: User | None = User.get(data["user_id"])
-
-        if not user:
-            raise ValueError(f"User with ID {data['user_id']} not found")
-
-        place: Place | None = Place.get(data["place_id"])
-
-        if not place:
-            raise ValueError(f"Place with ID {data['place_id']} not found")
-
-        new_review = Review(**data)
-
-        repo.save(new_review)
-
-        return new_review
-
-    @staticmethod
-    def update(review_id: str, data: dict) -> "Review | None":
+    def update(self):
         """Update an existing review"""
-        from src.persistence import repo
-
-        review = Review.get(review_id)
-
-        if not review:
-            raise ValueError("Review not found")
-
-        for key, value in data.items():
-            setattr(review, key, value)
-
-        repo.update(review)
-
-        return review
+        db.session.commit()
+        return self

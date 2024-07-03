@@ -1,6 +1,7 @@
 """
 Country related functionality
 """
+<<<<<<< Updated upstream
 from sqlalchemy import Column, String, Integer, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -26,48 +27,40 @@ class Country(Base):
     name: str
     code: str
     cities: list
+=======
+from src import db
+from src.models.base import Base
+
+class Country(Base):
+    name = db.Column(db.String(120), nullable=False)
+    code = db.Column(db.String(2), nullable=False)
+    cities = db.relationship('City', backref='country', lazy=True)
+>>>>>>> Stashed changes
 
     def __init__(self, name: str, code: str, **kw) -> None:
-        """Dummy init"""
         super().__init__(**kw)
         self.name = name
         self.code = code
 
     def __repr__(self) -> str:
-        """Dummy repr"""
-        return f"<Country {self.code} ({self.name})>"
+        return f"<Country {self.name} {self.code}>"
 
     def to_dict(self) -> dict:
-        """Returns the dictionary representation of the country"""
+        """Dictionary representation of the object"""
         return {
+            "id": self.id,
             "name": self.name,
-            "code": self.code,
+            "code": self.code
         }
 
-    @staticmethod
-    def get_all() -> list["Country"]:
-        """Get all countries"""
-        from src.persistence import repo
-
-        countries: list["Country"] = repo.get_all("country")
-
-        return countries
-
-    @staticmethod
-    def get(code: str) -> "Country | None":
-        """Get a country by its code"""
-        for country in Country.get_all():
-            if country.code == code:
-                return country
-        return None
-
-    @staticmethod
-    def create(name: str, code: str) -> "Country":
+    def create(self):
         """Create a new country"""
-        from src.persistence import repo
+        db.session.add(self)
+        db.session.commit()
+        return self
 
-        country = Country(name, code)
+    def update(self):
+        """Update an existing country"""
+        db.session.commit()
+        return self
 
-        repo.save(country)
-
-        return country
