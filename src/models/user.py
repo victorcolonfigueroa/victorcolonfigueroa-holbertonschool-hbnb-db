@@ -3,7 +3,18 @@ User related functionality
 """
 
 from src.models.base import Base
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Boolean
 
+Base = declarative_base()
+
+__tablename__ = 'user'
+
+id= Column(Integer, primary_key=True)
+user = Column(String, unique=True, nullable=False)
+email = Column(String, unique=True, nullable=False)
+password = Column(String, nullable=False)
+is_admin = Column(Boolean, default=False)
 
 class User(Base):
     """User representation"""
@@ -33,7 +44,14 @@ class User(Base):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
-
+    
+    __tablename__ = 'user'
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    password = Column(String, nullable=False)
+    is_admin = Column(Boolean, default=False)
+    
     @staticmethod
     def create(user: dict) -> "User":
         """Create a new user"""

@@ -5,7 +5,25 @@ Place related functionality
 from src.models.base import Base
 from src.models.city import City
 from src.models.user import User
+from sqlalchemy import Column, String, Float, Integer, ForeignKey
 
+__tablename__ = 'places'
+
+id = Column(Integer, primary_key=True)
+name = Column(String, nullable=False)
+description = Column(String, nullable=False)
+address = Column(String, nullable=False)
+latitude = Column(Float, nullable=True)
+longitude = Column(Float, nullable=True)
+host_id = Column(String, ForeignKey('user.id'), nullable=False)
+city_id = Column(String, ForeignKey('city.id'), nullable=False)
+price_per_night = Column(Integer, nullable=False)
+number_of_rooms = Column(Integer, nullable=False)
+number_of_bathrooms = Column(Integer, nullable=False)
+max_guests = Column(Integer, nullable=False)
+
+host = relationship("User", back_populates="places")
+city = relationship("City", back_pipulates="places")
 
 class Place(Base):
     """Place representation"""

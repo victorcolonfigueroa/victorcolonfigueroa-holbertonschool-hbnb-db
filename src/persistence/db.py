@@ -20,7 +20,9 @@ class DBRepository(Repository):
     """Dummy DB repository"""
 
     def __init__(self) -> None:
-        """Not implemented"""
+        """Initialize the DBRepository"""
+        super().__init__()
+        # Add any additional initialization code here
 
     def get_all(self, model_name: str) -> list:
         """Not implemented"""

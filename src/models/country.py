@@ -1,9 +1,20 @@
 """
 Country related functionality
 """
+from sqlalchemy import Column, String, Integer, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+Base = declarative_base()
+
+__tablename__ = 'countries'
+
+id = Column(Integer, primary_key=True)
+name = Column(String, nullable=False)
+code = Column(String, nullable=False, unique=False)
 
 
-class Country:
+class Country(Base):
     """
     Country representation
 

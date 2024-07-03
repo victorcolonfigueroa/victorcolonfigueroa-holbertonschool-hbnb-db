@@ -5,7 +5,15 @@ Review related functionality
 from src.models.base import Base
 from src.models.place import Place
 from src.models.user import User
+from sqlalchemy import Column, String, Float, Integer, ForeignKey
 
+__tablename__ = 'reviews'
+
+id = Column(Integer, primary_key=True)
+place_id = Column(String, ForeingKey('places.id'), nullable=False)
+user_id = Column(String, ForeignKey('user.id'),nullable=False)
+comment = Column(String, nullable=False)
+rating = Column(Float, nullable=False)
 
 class Review(Base):
     """Review representation"""

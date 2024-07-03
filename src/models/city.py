@@ -4,7 +4,20 @@ City related functionality
 
 from src.models.base import Base
 from src.models.country import Country
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from src.models.base import Base
 
+__tablename__ = 'cities'
+
+id = Column(Integer, primary_key=True)
+name = Column(String, nullable=False)
+country_code = Column(String, ForeignKey('countries.code'), nullable=False)
+created_at = Column(DateTime(timezome=True), server_default=func.now())
+update_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+country = relationship("Country", bac_populates="cities")
 
 class City(Base):
     """City representation"""
