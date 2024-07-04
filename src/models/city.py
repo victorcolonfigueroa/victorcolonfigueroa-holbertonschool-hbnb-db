@@ -1,7 +1,7 @@
 """
 City related functionality
 """
-
+from src import db
 from src.models.base import Base
 from src.models.country import Country
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
@@ -20,61 +20,32 @@ update_at = Column(DateTime(timezone=True), onupdate=func.now())
 country = relationship("Country", bac_populates="cities")
 
 class City(Base):
-    """City representation"""
-
-    name: str
-    country_code: str
+    name = db.Column(db.String(120), nullable=False)
+    country_code = db.Column(db.String(36), db.ForeignKey('countries.id'), nullable=False)
 
     def __init__(self, name: str, country_code: str, **kw) -> None:
-        """Dummy init"""
         super().__init__(**kw)
-
         self.name = name
         self.country_code = country_code
 
     def __repr__(self) -> str:
-        """Dummy repr"""
-        return f"<City {self.id} ({self.name})>"
+        return f"<City {self.name} {self.country_code}>"
 
     def to_dict(self) -> dict:
         """Dictionary representation of the object"""
         return {
             "id": self.id,
             "name": self.name,
-            "country_code": self.country_code,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
+            "country_code": self.country_code
         }
 
-    @staticmethod
-    def create(data: dict) -> "City":
+    def create(self):
         """Create a new city"""
-        from src.persistence import repo
+        db.session.add(self)
+        db.session.commit()
+        return self
 
-        country = Country.get(data["country_code"])
-
-        if not country:
-            raise ValueError("Country not found")
-
-        city = City(**data)
-
-        repo.save(city)
-
-        return city
-
-    @staticmethod
-    def update(city_id: str, data: dict) -> "City":
+    def update(self):
         """Update an existing city"""
-        from src.persistence import repo
-
-        city = City.get(city_id)
-
-        if not city:
-            raise ValueError("City not found")
-
-        for key, value in data.items():
-            setattr(city, key, value)
-
-        repo.update(city)
-
-        return city
+        db.session.commit()
+        return self
