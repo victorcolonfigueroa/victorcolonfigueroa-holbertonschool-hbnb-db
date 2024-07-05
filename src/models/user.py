@@ -6,16 +6,6 @@ from src.models.base import Base
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean
 
-Base = declarative_base()
-
-__tablename__ = 'user'
-
-id= Column(Integer, primary_key=True)
-user = Column(String, unique=True, nullable=False)
-email = Column(String, unique=True, nullable=False)
-password = Column(String, nullable=False)
-is_admin = Column(Boolean, default=False)
-
 class User(db.Model):
     """User representation"""
 
@@ -43,21 +33,8 @@ class User(db.Model):
             # "password": self.password,  # Never expose password
             "is_admin": self.is_admin
         }
-<<<<<<< Updated upstream
-    
-    __tablename__ = 'user'
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True, nullable=False)
-    email = Column(String, unique=True, nullable=False)
-    password = Column(String, nullable=False)
-    is_admin = Column(Boolean, default=False)
-    
-    @staticmethod
-    def create(user: dict) -> "User":
-=======
 
     def create(self):
->>>>>>> Stashed changes
         """Create a new user"""
         db.session.add(self)
         db.session.commit()

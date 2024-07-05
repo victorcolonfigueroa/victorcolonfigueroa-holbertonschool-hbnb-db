@@ -9,20 +9,18 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from src.models.base import Base
 
-__tablename__ = 'cities'
-
-id = Column(Integer, primary_key=True)
-name = Column(String, nullable=False)
-country_code = Column(String, ForeignKey('countries.code'), nullable=False)
-created_at = Column(DateTime(timezome=True), server_default=func.now())
-update_at = Column(DateTime(timezone=True), onupdate=func.now())
-
-country = relationship("Country", bac_populates="cities")
 
 class City(Base):
+    __tablename__ = 'cities'
+    
+    id = Column(Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     country_code = db.Column(db.String(36), db.ForeignKey('countries.id'), nullable=False)
-
+    created_at = Column(DateTime(timezome=True), server_default=func.now())
+    update_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    country = relationship("Country", back_populates="cities")
+    
     def __init__(self, name: str, country_code: str, **kw) -> None:
         super().__init__(**kw)
         self.name = name

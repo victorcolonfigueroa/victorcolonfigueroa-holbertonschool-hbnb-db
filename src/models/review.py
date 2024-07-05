@@ -17,7 +17,7 @@ rating = Column(Float, nullable=False)
 
 class Review(Base):
     """Review representation"""
-
+    id = Column(Integer, primary_key=True)
     place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)
