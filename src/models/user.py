@@ -1,46 +1,90 @@
+from enum import auto
+import uuid
+from datetime import datetime
+from sqlalchemy import Column, DateTime, String, Boolean
+from sqlalchemy.orm import Mapped
+from src import db
+
 """
 User related functionality
 """
-from src import db
-from src.models.base import Base
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean
 
 class User(db.Model):
-    """User representation"""
+    
+    __tablename__ = "users"
 
-    id = db.Column(db.String(36), primary_key=True)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(128), nullable=False)  # Ensure secure storage
-    is_admin = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-    updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+    id: Mapped[str] = Column(String(36), primary_key=True, nullable=False, unique=True, autoincrement=False, default=str(uuid.uuid4()))
+    email: Mapped[str] = Column(String(120), unique=True, nullable=False)
+    password: Mapped[str] = Column(String(128), nullable=False)
+    first_name: Mapped[str] = Column(String(60), nullable=False)
+    last_name: Mapped[str] = Column(String(60), nullable=False)
+    is_admin: Mapped[bool] = Column(Boolean, default=False)
+    created_at: Mapped[datetime] = Column(DateTime, default=datetime.now, nullable=False)
+    updated_at: Mapped[datetime] = Column(DateTime, onupdate=datetime.now, nullable=False)
 
-    def __init__(self, email: str, password: str, is_admin: bool = False):
-        self.id = str(uuid.uuid4())
+    def __init__(self, email: str, first_name: str, last_name: str, **kw):
+        """Initialize a User object"""
+        super().__init__(**kw)
         self.email = email
-        self.password = password
-        self.is_admin = is_admin
+        self.first_name = first_name
+        self.last_name = last_name
 
     def __repr__(self) -> str:
-        return f"<User {self.id} {(self.email)}>"
+        """Dummy repr"""
+        return f"<User {self.id} ({self.email})>"
 
     def to_dict(self) -> dict:
         """Dictionary representation of the object"""
         return {
             "id": self.id,
             "email": self.email,
-            # "password": self.password,  # Never expose password
-            "is_admin": self.is_admin
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
 
-    def create(self):
-        """Create a new user"""
-        db.session.add(self)
-        db.session.commit()
-        return self
 
-    def update(self):
+    @staticmethod
+    def get_all() -> list["User"]:
+        """Get all users"""
+
+        return User.query.all()
+    
+    @staticmethod
+    def get(user_id: str) -> "User | None":
+        """Get a user by ID"""
+
+        return User.query.get(user_id)
+    
+    @staticmethod
+    def create(user: dict) -> "User":
+        """Create a new user"""
+
+        users: list["User"] = User.get_all()
+
+        for u in users:
+            if u.email == user["email"]:
+                raise ValueError("User already exists")
+
+        new_user = User(**user)
+        return new_user
+
+    @staticmethod
+    def update(user_id: str, data: dict) -> "User | None":
         """Update an existing user"""
-        db.session.commit()
-        return self
+
+        user: User | None = User.get(user_id)
+
+        if not user:
+            return None
+
+        if "email" in data:
+            user.email = data["email"]
+        if "first_name" in data:
+            user.first_name = data["first_name"]
+        if "last_name" in data:
+            user.last_name = data["last_name"]
+
+        return user
+

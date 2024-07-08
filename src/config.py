@@ -10,21 +10,20 @@ This module exports configuration classes for the Flask application.
 from abc import ABC
 import os
 
-class Config:
-    PERSITENCE_MODE = os.getenv('PERSISTENCE_MODE', 'file')
-    DATABASE_URI = os.getenv('DATABASE_URI')
-    FILE_PATH = os.getenv('FILE_PATH')
+from flask_sqlalchemy import SQLAlchemy
 
-#class Config(ABC):
+from utils.constants import USE_DATABASE_ENV_VAR
+
+
+class Config(ABC):
     """
     Initial configuration settings
     This class should not be instantiated directly
     """
 
- #   DEBUG = False
- #  TESTING = False
-
-#    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEBUG = False
+    TESTING = False
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 class DevelopmentConfig(Config):
@@ -45,6 +44,8 @@ class DevelopmentConfig(Config):
 
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", "sqlite:///hbnb_dev.db")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    USE_DATABASE = os.getenv(USE_DATABASE_ENV_VAR, 'False').lower() in ('true', '1', 't')
     DEBUG = True
 
 
@@ -84,11 +85,3 @@ class ProductionConfig(Config):
         "DATABASE_URL",
         "postgresql://user:password@localhost/hbnb_prod"
     )
-
-def get_database_url():
-    current_env = os.getenv('ENVIRONMENT', 'development')
-
-    if current_env == 'production':
-        return os.getenv('PRODUCTION_DATABASE_URL')
-    else:
-        return os.getenv('DEVELOPMENT_DATABASE_URL')

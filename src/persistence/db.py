@@ -1,79 +1,106 @@
-"""
-  Now is easy to implement the database repository. The DBRepository
-  should implement the Repository (Storage) interface and the methods defined
-  in the abstract class Storage.
-
-  The methods to implement are:
-    - get_all
-    - get
-    - save
-    - update
-    - delete
-    - reload (which can be empty)
-"""
-
+from src import db
 from src.models.base import Base
 from src.persistence.repository import Repository
-from src.models import db
-from sqlalchemy.exc import SQLAlchemyError
-from utils.populate import populate_db
 
 class DBRepository(Repository):
-    """Dummy DB repository"""
+    """A class representing a database repository."""
+
     def __init__(self) -> None:
-        self.__session = None
-        self.reload()
-           
-   # def __init__(self) -> None:
-        """Initialize the DBRepository"""
-    #    super().__init__()
-        # Add any additional initialization code here
+       """Initialize the DBRepository class."""
+    pass
 
     def get_all(self, model_name: str) -> list:
-        try:
-            return self.__session.query(model_name).all()
-        except SQLAlchemyError:
-            self.__session.rollback()
-        return []
+        """
+        Retrieve all objects of a given model from the database.
+
+        Args:
+            model_name (str): The name of the model.
+
+        Returns:
+            list: A list of objects of the specified model.
+
+        Raises:
+            ValueError: If the specified model name is invalid.
+        """
+        model = self._get_model_by_name(model_name)
+        if model_name:
+            return db.session.query(model).all()
+        else:
+            raise ValueError(f"Invalid model name: {model_name}")
 
     def get(self, model_name: str, obj_id: str) -> Base | None:
-        try:
-            return self.__session.query(model_name).get(obj_id)
-        except SQLAlchemyError:
-            self.__session.rollback()
-            return None
+        """
+        Retrieve an object of a given model from the database.
+
+        Args:
+            model_name (str): The name of the model.
+            obj_id (str): The ID of the object.
+
+        Returns:
+            Base | None: The object if found, None otherwise.
+
+        Raises:
+            ValueError: If the specified model name is invalid.
+        """
+        model_name = globals().get(model_name)
+        if model_name:
+            return model_name.query.get(obj_id)
+        else:
+            raise ValueError(f"Invalid model name: {model_name}")
 
     def reload(self) -> None:
-        self.__session = db.session
-        try:
-            db.create_all()
-            self.__session.commit()
-            populate_db(self)
-            print("commited")
-        except SQLAlchemyError:
-            print("ERROR")
-            self.__session.rollback()
-            
+        """
+        Reload the database session.
+        Rolls back any pending changes in the session.
+        """
+        db.session.rollback()
+
     def save(self, obj: Base) -> None:
-        try:
-            self.__session.add(obj)
-            self.__session.commit()
-            print("user added")
-        except SQLAlchemyError:
-            print("ERROR")
-            self.__session.rollback()
+        """
+        Save an object to the database.
 
+        Args:
+            obj (Base): The object to be saved.
+        """
+
+        cls = obj.__class__.__name__.lower()
+
+        print(f"Saving {obj}, {cls}")
+        db.session.add(obj)
+        db.session.commit()
+
+        return obj
+          
     def update(self, obj: Base) -> Base | None:
-        try:
-            self.__session.commit()
-        except SQLAlchemyError:
-            self.__session.rollback()
+        """
+        Update an object in the database.
 
+        Args:
+            obj (Base): The object to be updated.
+
+        Returns:
+            Base | None: The updated object if successful, None otherwise.
+
+        Note:
+            This method has no effect if `use_database` is False.
+        """
+        db.session.commit()
+        return obj
+        
     def delete(self, obj: Base) -> bool:
-        try:
-            self.__session.delete(obj)
-            self.__session.commit()
-            return True
-        except SQLAlchemyError:
-            self.__session.rollback()
-            return False
+        """
+        Delete an object from the database.
+
+        Args:
+            obj (Base): The object to be deleted.
+
+        Returns:
+            bool: True if the object was successfully deleted, False otherwise.
+
+        Note:
+            This method has no effect if `use_database` is False.
+        """
+        db.session.delete(obj)
+        db.session.commit()
+        return True
+        

@@ -1,4 +1,9 @@
+python-dotenv
 flask
 flask-cors
-SQLAlchemy
+
 gunicorn
+
+SQLAlchemy
+flask_sqlalchemy
+flask_migrate

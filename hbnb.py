@@ -1,8 +1,6 @@
 """ Another way to run the app"""
-from dotenv import load_env
-from src import create_app
 
-load_env()
+from src import create_app
 
 app = create_app()
 

@@ -1,38 +1,67 @@
 """
 Country related functionality
 """
-from src import db
-from src.models.base import Base
 
-class Country(Base):
-    name = db.Column(db.String(120), nullable=False)
-    code = db.Column(db.String(2), nullable=False)
-    cities = db.relationship('City', backref='country', lazy=True)
+
+from sqlalchemy import Column
+from sqlalchemy import Column, String
+from sqlalchemy.orm import Mapped
+
+class Country:
+    """
+    Country representation
+
+    This class does NOT inherit from Base, you can't delete or update a country
+
+    This class is used to get and list countries
+    """
+    __tablename__ = "countries"
+    
+    name: Mapped[str] = Column(String(36), unique=True, nullable=False)
+    code: Mapped[str] = Column(String(3), unique=True, primary_key=True, nullable=False)
+    cities: list
 
     def __init__(self, name: str, code: str, **kw) -> None:
+        """Dummy init"""
         super().__init__(**kw)
         self.name = name
         self.code = code
 
     def __repr__(self) -> str:
-        return f"<Country {self.name} {self.code}>"
+        """Dummy repr"""
+        return f"<Country {self.code} ({self.name})>"
 
     def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
+        """Returns the dictionary representation of the country"""
         return {
-            "id": self.id,
             "name": self.name,
-            "code": self.code
+            "code": self.code,
         }
 
-    def create(self):
+    @staticmethod
+    def get_all() -> list["Country"]:
+        """Get all countries"""
+        from src.persistence import repo
+
+        countries: list["Country"] = repo.get_all("country")
+
+        return countries
+
+    @staticmethod
+    def get(code: str) -> "Country | None":
+        """Get a country by its code"""
+        for country in Country.get_all():
+            if country.code == code:
+                return country
+        return None
+
+    @staticmethod
+    def create(name: str, code: str) -> "Country":
         """Create a new country"""
-        db.session.add(self)
-        db.session.commit()
-        return self
+        from src.persistence import repo
 
-    def update(self):
-        """Update an existing country"""
-        db.session.commit()
-        return self
+        country = Country(name, code)
 
+        repo.save(country)
+
+        return country
